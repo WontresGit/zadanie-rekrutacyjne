@@ -19,8 +19,8 @@ class ShortUrl
     #[ORM\Column(length: 127)]
     private ?string $shortCode = null;
 
-    #[ORM\Column]
-    private ?bool $isPublic = null;
+    #[ORM\Column(options: ["default" => false])]
+    private ?bool $isPublic = false;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createDate = null;
@@ -38,8 +38,8 @@ class ShortUrl
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $deleteDate = null;
 
-    #[ORM\Column]
-    private ?int $clicks = null;
+    #[ORM\Column(options: ["default" => true])]
+    private ?int $clicks = 0;
 
     public function getId(): ?int
     {

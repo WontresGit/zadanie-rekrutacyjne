@@ -65,6 +65,37 @@ class User implements UserInterface
         return (string) $this->uuid;
     }
 
+    #[ORM\Column(length: 255)]
+    private ?string $jwtToken = null;
+
+    public function getJwtToken(): ?string
+    {
+        return $this->jwtToken;
+    }
+
+    public function setJwtToken(?string $jwtToken): static
+    {
+        $this->jwtToken = $jwtToken;
+
+        return $this;
+    }
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $jwtTokenValidDateTime = null;
+
+    public function getJwtTokenValid(): ?\DateTimeImmutable
+    {
+        return $this->jwtTokenValidDateTime;
+    }
+
+    public function setJwtTokenValid(?\DateTimeImmutable $jwtTokenValidDateTime): static
+    {
+        $this->jwtTokenValidDateTime = $jwtTokenValidDateTime;
+
+        return $this;
+    }
+
+
     /**
      * @see UserInterface
      */
@@ -87,15 +118,20 @@ class User implements UserInterface
         return $this;
     }
 
+    public function eraseCredentials(): void
+    {
+        return;
+    }
+
     /**
      * @return Collection<int, ShortUrl>
      */
-    public function getDeleteDate(): Collection
+    public function getShortUrls(): Collection
     {
         return $this->shortUrls;
     }
 
-    public function addDeleteDate(ShortUrl $shortUrl): static
+    public function addShortUrls(ShortUrl $shortUrl): static
     {
         if (!$this->shortUrls->contains($shortUrl)) {
             $this->shortUrls->add($shortUrl);
@@ -105,7 +141,7 @@ class User implements UserInterface
         return $this;
     }
 
-    public function removeDeleteDate(ShortUrl $shortUrl): static
+    public function removeShortUrls(ShortUrl $shortUrl): static
     {
         if ($this->shortUrls->removeElement($shortUrl)) {
             // set the owning side to null (unless already changed)

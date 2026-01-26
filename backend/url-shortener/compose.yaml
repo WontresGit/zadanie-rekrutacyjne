@@ -1,15 +1,32 @@
 
 services:
+  php:
+    image: php:8.4-cli-alpine
+    build: .
+    container_name: symfony_php
+    environment:
+      - JWT_SECRET_KEY: /app/config/jwt/private.pem
+      - JWT_PUBLIC_KEY: /app/config/jwt/public.pem
+    ports:
+      - "8000:8000"       # Symfony server
+    volumes:
+      - ./:/srv/app
+    depends_on:
+      - database
+    command: >
+      sh -c "php -S 0.0.0.0:8000 -t public"
 ###> doctrine/doctrine-bundle ###
   database:
     image: postgres:${POSTGRES_VERSION:-16}-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-app}
       # You should definitely change the password in production
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
-      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-SU1DB2PW}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_ROOT_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: md5
     healthcheck:
-      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-admin}"]
       timeout: 5s
       retries: 5
       start_period: 60s
