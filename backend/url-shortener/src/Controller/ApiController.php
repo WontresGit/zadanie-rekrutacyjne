@@ -30,9 +30,9 @@ final class ApiController extends AbstractController
             $user->setJwtTokenValid($jwtTokenValid);
             $entityManager->persist($user);
             $entityManager->flush();
-            return new JsonResponse(array('code' => 200, 'userUuid' => $uuid, 'jwtToken' => $jwtToken, 'validDateTime' => $jwtTokenValid));
+            return $this->json(array('userUuid' => $uuid, 'jwtToken' => $jwtToken, 'validDateTime' => $jwtTokenValid), 200);
         } catch (Exception $e) {
-            return new JsonResponse(array('code' => 500, 'message' => 'There was a problem while creating new user session.'));
+            return $this->json(array('message' => 'There was a problem while creating new user session.'), 500);
         }
     }
 
