@@ -1,21 +1,33 @@
-
 services:
+  next:
+   image: node:20-alpine
+   container_name: next_frontend
+   working_dir: /app
+   ports:
+    - "3000:3000"
+   volumes:
+      - ./frontend/url-shortener:/app
+      - /app/node_modules   # ważne na Windows/Mac
+   command: >
+      sh -c "npm install && npm run dev"
   php:
     image: php:8.4-cli-alpine
-    build: .
+    build: 
+      context: ./backend/url-shortener
+      dockerfile: ../../Dockerfile
     container_name: symfony_php
     environment:
-      JWT_SECRET_KEY: /app/config/jwt/private.pem
-      JWT_PUBLIC_KEY: /app/config/jwt/public.pem
+      JWT_SECRET_KEY: /srv/app/config/jwt/private.pem
+      JWT_PUBLIC_KEY: /srv/app/config/jwt/public.pem
     ports:
-      - "8000:8000"       # Symfony server
+      - "8000:8000" # Symfony server
     volumes:
-      - ./:/srv/app
+      - ./backend/url-shortener:/srv/app
     depends_on:
       - database
     command: >
       sh -c "php -S 0.0.0.0:8000 -t public"
-###> doctrine/doctrine-bundle ###
+  ###> doctrine/doctrine-bundle ###
   database:
     image: postgres:${POSTGRES_VERSION:-16}-alpine
     environment:
@@ -26,7 +38,15 @@ services:
       POSTGRES_ROOT_PASSWORD: password
       POSTGRES_HOST_AUTH_METHOD: md5
     healthcheck:
-      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-admin}"]
+      test:
+        [
+          "CMD",
+          "pg_isready",
+          "-d",
+          "${POSTGRES_DB:-app}",
+          "-U",
+          "${POSTGRES_USER:-admin}",
+        ]
       timeout: 5s
       retries: 5
       start_period: 60s
@@ -37,6 +57,6 @@ services:
 ###< doctrine/doctrine-bundle ###
 
 volumes:
-###> doctrine/doctrine-bundle ###
+  ###> doctrine/doctrine-bundle ###
   database_data:
 ###< doctrine/doctrine-bundle ###

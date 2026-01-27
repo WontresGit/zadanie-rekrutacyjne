@@ -4,45 +4,60 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
-use DateInterval;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Lcobucci\JWT\Encoding\JoseEncoder;
+use Lcobucci\JWT\Token\Parser;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class ApiController extends AbstractController
 {
     #[Route('/api/session', methods: ["POST"])]
-    public function makeSession(EntityManagerInterface $entityManager, JWTTokenManagerInterface $jwtManager): JsonResponse
+    #[IsGranted("PUBLIC_ACCESS")]
+    public function makeSession(EntityManagerInterface $entityManager, JWTTokenManagerInterface $jwtManager, LoggerInterface $logger): JsonResponse
     {
         try {
+            $logger->info("POCZĄTEK");
             $user = new User();
             $uuid = uniqid();
+            $logger->info($uuid);
             $user->setUuid($uuid);
-            $jwtToken = $jwtManager->create($user);
-            $user->setJwtToken($jwtToken);
-            $timeNow = new DateTimeImmutable();
-            $jwtTokenValid = $timeNow->add(new DateInterval("P7D"));
-            $user->setJwtTokenValid($jwtTokenValid);
+            $user->setRoles(['ROLE_USER']);
             $entityManager->persist($user);
             $entityManager->flush();
-            return $this->json(array('userUuid' => $uuid, 'jwtToken' => $jwtToken, 'validDateTime' => $jwtTokenValid), 200);
+            $logger->info($user->getUserIdentifier());
+            $logger->info("Tworzenie jwt");
+            $jwtToken = $jwtManager->create($user);
+            $logger->info($jwtToken);
+            return $this->json(['jwtToken' => $jwtToken], 200);
         } catch (Exception $e) {
+            $logger->error($e);
             return $this->json(array('message' => 'There was a problem while creating new user session.'), 500);
         }
     }
 
     #[Route('/api/session', methods: ["GET"])]
-    public function downloadSession(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function downloadSession(Request $request, EntityManagerInterface $entityManager, JWTTokenManagerInterface $jwtManager, LoggerInterface $logger): JsonResponse
     {
-        $content = $request->getContent();
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/ApiController.php',
-        ]);
+        try {
+            $user = $this->getUser();
+            $authHeader = $request->headers->get('Authorization');
+            if ($authHeader && str_starts_with($authHeader, 'Bearer ')) {
+                $jwt = substr($authHeader, 7);
+                $payload = $jwtManager->parse($jwt);
+                $expiresAt = $payload['exp'];
+            }
+            return $this->json(array('user' => $user, "uuid" => $user ? $user->getUserIdentifier() : null, 'jwtToken' => $jwt ?? null, "expire" => $expiresAt ?? null), 200);
+        } catch (Exception $e) {
+            $logger->error($e);
+            return $this->json(array('message' => 'There was a problem getting current user session.'), 500);
+        }
+
     }
 }

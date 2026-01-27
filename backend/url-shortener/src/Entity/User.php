@@ -65,37 +65,6 @@ class User implements UserInterface
         return (string) $this->uuid;
     }
 
-    #[ORM\Column(length: 255)]
-    private ?string $jwtToken = null;
-
-    public function getJwtToken(): ?string
-    {
-        return $this->jwtToken;
-    }
-
-    public function setJwtToken(?string $jwtToken): static
-    {
-        $this->jwtToken = $jwtToken;
-
-        return $this;
-    }
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $jwtTokenValidDateTime = null;
-
-    public function getJwtTokenValid(): ?\DateTimeImmutable
-    {
-        return $this->jwtTokenValidDateTime;
-    }
-
-    public function setJwtTokenValid(?\DateTimeImmutable $jwtTokenValidDateTime): static
-    {
-        $this->jwtTokenValidDateTime = $jwtTokenValidDateTime;
-
-        return $this;
-    }
-
-
     /**
      * @see UserInterface
      */
