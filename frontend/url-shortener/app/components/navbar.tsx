@@ -1,14 +1,8 @@
 "use client";
 import Link from "next/link";
-import {useState} from "react";
 import {useAppContext} from "./context";
-// import {useContext} from "react";
-// import {AuthContext} from "../layout";
 
 export default function Navbar() {
-  // const [isSessionActive, setIsSessionActive] = useState<boolean>(
-  //   localStorage.getItem("jwtToken") ? true : false,
-  // );
   const authStatus = useAppContext();
   async function handleAuthClicked() {
     if (typeof window !== "undefined") {

@@ -11,6 +11,7 @@ use Exception;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Psr\Log\LoggerInterface;
@@ -114,11 +115,15 @@ final class ApiController extends AbstractController
     }
     #[Route('/api/urls/{id}/stats', methods: ["GET"])]
     #[IsGranted("PUBLIC_ACCESS")]
-    public function getShortUrlStats(ShortUrl $shortUrl, LoggerInterface $logger)
+    public function getShortUrlStats(int $id, LoggerInterface $logger)
     {
         try {
             $user = $this->getUser();
-            return $this->json(["clicks" => $shortUrl->getClicks()], 200);
+            if ($user instanceof User)
+                $shortUrl = $user->getShortUrls()->filter(function (ShortUrl $shortUrl) use ($id) {
+                    return $shortUrl->getId() === $id && $shortUrl->getDeleteDate() > new DateTimeImmutable();
+                });
+            return $this->json(["clicks" => $shortUrl->first()->getClicks()], 200);
         } catch (Exception $e) {
             $logger->error($e);
             return $this->json(["message" => "There was a problem getting short url stats."], 500);
@@ -142,22 +147,43 @@ final class ApiController extends AbstractController
     }
     #[Route('/api/public', methods: ["GET"])]
     #[IsGranted("PUBLIC_ACCESS")]
-    public function getPublicShortUrls(ShortUrlRepository $shortUrlRepository, LoggerInterface $logger)
+    public function getPublicShortUrls(EntityManagerInterface $entityManager, LoggerInterface $logger)
     {
         try {
-            $publicShortUrls = $shortUrlRepository->findAll();
-            return $this->json($publicShortUrls, 200);
+            $now = new DateTimeImmutable();
+            $qb = $entityManager->getRepository(ShortUrl::class)->createQueryBuilder('s');
+            $qb->where('s.isPublic = :isPublic')
+                ->andWhere($qb->expr()->orX(
+                    's.expireDate IS NULL',
+                    's.expireDate > :now'
+                ))
+                ->andWhere('s.deleteDate IS NULL')
+                ->setParameter('isPublic', true)
+                ->setParameter('now', $now)
+                ->orderBy('s.createDate', 'DESC');
+            $results = $qb->getQuery()->getResult();
+            return $this->json($results, 200);
         } catch (Exception $e) {
             $logger->error($e);
             return $this->json(array('message' => 'There was a problem getting all public links.'), 500);
         }
     }
-    #[Route('/{shortCode}', methods: ["GET"])]
+    #[Route('/{shortCode}', methods: ["GET"], requirements: ['shortCode' => '[A-Za-z0-9]+'])]
     #[IsGranted("PUBLIC_ACCESS")]
-    public function redirectToShortUrl(string $shortCode, LoggerInterface $logger)
+    public function redirectToShortUrl(string $shortCode, EntityManagerInterface $entityManager, LoggerInterface $logger)
     {
         try {
-            $user = $this->getUser();
+            $now = new DateTimeImmutable();
+            $qb = $entityManager->getRepository(ShortUrl::class)->createQueryBuilder('s');
+            $qb->where('s.shortCode = :code')
+                ->andWhere('s.deleteDate IS NULL')
+                ->andWhere('s.expireDate IS NULL OR s.expireDate > :now')
+                ->setParameter('code', $shortCode)
+                ->setParameter('now', $now);
+            $result = $qb->getQuery()->getOneOrNullResult();
+            if (!$shortCode)
+                return $this->json(array('message' => 'Short Url not found or expired.'), 404);
+            return new RedirectResponse($result->getFullLink());
         } catch (Exception $e) {
             $logger->error($e);
             return $this->json(array('message' => 'There was a problem redirecting with short code.'), 500);

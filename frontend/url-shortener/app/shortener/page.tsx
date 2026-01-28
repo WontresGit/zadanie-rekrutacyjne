@@ -34,7 +34,7 @@ export default function UrlShortenerPage() {
       }
       const shortUrl: ShortUrl = {
         fullLink: fullLink,
-        isPublic: isPrivate,
+        isPublic: !isPrivate,
         createDate: now,
         expireDate: expireDate,
         alias: alias !== "" ? alias : undefined,

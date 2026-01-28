@@ -1,6 +1,13 @@
 "use client";
 
-import {createContext, ReactNode, useContext, useState} from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 type AuthStatus = {
   isAuth: boolean;
@@ -21,13 +28,14 @@ export const useAppContext = () => {
 };
 
 export function AppContextProvider({children}: {children: ReactNode[]}) {
-  const [isAuth, setIsAuth] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return !!localStorage.getItem("jwt");
-  });
+  const [isAuth, setIsAuth] = useState<boolean>(false);
+  const authState = useMemo(() => ({isAuth, setIsAuth}), [isAuth]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsAuth(!!localStorage.getItem("jwt"));
+  }, []);
   return (
-    <AppContext.Provider value={{isAuth, setIsAuth}}>
-      {children}
-    </AppContext.Provider>
+    <AppContext.Provider value={authState}>{children}</AppContext.Provider>
   );
 }

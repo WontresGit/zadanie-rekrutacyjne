@@ -139,9 +139,9 @@ class ShortUrl
         return $this;
     }
 
-    public function getCreator(): ?User
+    public function getCreator(): string
     {
-        return $this->creator;
+        return $this->creator->getUserIdentifier();
     }
 
     public function setCreator(?User $creator): static
