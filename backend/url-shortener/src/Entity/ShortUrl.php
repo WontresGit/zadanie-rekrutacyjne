@@ -4,8 +4,29 @@ namespace App\Entity;
 
 use App\Repository\ShortUrlRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: ShortUrlRepository::class)]
+#[ORM\Table(
+    uniqueConstraints: [
+        new ORM\UniqueConstraint(
+            name: 'unique_short_url',
+            columns: ['full_link', 'is_public', 'creator_id']
+        ),
+        new ORM\UniqueConstraint(
+            name: 'unique_alias_creator',
+            columns: ['alias', 'creator_id']
+        ),
+    ]
+)]
+#[UniqueEntity(
+    fields: ['fullLink', 'isPublic', 'creator'],
+    message: 'A short link already exists.'
+)]
+#[UniqueEntity(
+    fields: ['alias', 'creator'],
+    message: 'You already used that alias.'
+)]
 class ShortUrl
 {
     #[ORM\Id]
@@ -16,7 +37,7 @@ class ShortUrl
     #[ORM\Column(length: 255)]
     private ?string $fullLink = null;
 
-    #[ORM\Column(length: 127)]
+    #[ORM\Column(length: 127, nullable: true)]
     private ?string $shortCode = null;
 
     #[ORM\Column(options: ["default" => false])]

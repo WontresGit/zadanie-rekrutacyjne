@@ -13,3 +13,8 @@ nelmio_cors:
             allow_headers: ["Content-Type", "Authorization"]
             allow_methods: ["GET", "POST", "OPTIONS"]
             allow_credentials: true
+        "^/api/urls":
+            allow_origin: ["%env(CORS_ALLOW_ORIGIN)%"]
+            allow_headers: ["Content-Type", "Authorization"]
+            allow_methods: ["GET", "POST", "OPTIONS", "DELETE"]
+            allow_credentials: true

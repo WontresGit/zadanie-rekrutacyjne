@@ -24,7 +24,6 @@ export default function Navbar() {
             console.log(data);
             localStorage.setItem("jwt", data.jwtToken);
             authStatus.setIsAuth(true);
-            window.dispatchEvent(new Event("authstate"));
           })
           .catch((e) => {
             authStatus.setIsAuth(false);
@@ -34,7 +33,6 @@ export default function Navbar() {
         localStorage.removeItem("jwt");
         authStatus.setIsAuth(false);
       }
-      window.dispatchEvent(new Event("authstate"));
     }
   }
   async function handleCheckClicked() {
@@ -98,7 +96,7 @@ export default function Navbar() {
             className="flex h-8 w-full items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-39.5"
             onClick={handleAuthClicked}
           >
-            {authStatus.isAuth ? "Wyloguj" : "Zaloguj2"}
+            {authStatus.isAuth ? "Wyloguj" : "Zaloguj"}
           </button>
           <button
             type="button"
