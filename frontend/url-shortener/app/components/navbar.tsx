@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import {GiUnderwearShorts} from "react-icons/gi";
 import {useAppContext} from "./context";
 
 export default function Navbar() {
@@ -47,16 +48,17 @@ export default function Navbar() {
   }
   return (
     <nav className="bg-neutral-primary fixed w-full z-20 top-0 start-0 border-b border-default bg-white dark:bg-black">
-      <div className="max-w-7xl flex flex-wrap items-center justify-between mx-auto p-4">
+      <div className="max-w-7xl flex items-center justify-between mx-auto p-4">
         <Link
           href="/"
           className="flex items-center space-x-3 rtl:space-x-reverse"
         >
+          <GiUnderwearShorts />
           <span className="self-center text-xl text-heading font-semibold whitespace-nowrap">
             Skracacz Url
           </span>
         </Link>
-        <div className="w-full md:block md:w-auto" id="navbar-default">
+        <div className="w-full flex justify-center" id="navbar-default">
           <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-default rounded-base bg-neutral-secondary-soft md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-neutral-primary">
             <li>
               <Link
@@ -91,13 +93,6 @@ export default function Navbar() {
             onClick={handleAuthClicked}
           >
             {authStatus.isAuth ? "Wyloguj" : "Zaloguj"}
-          </button>
-          <button
-            type="button"
-            className="flex h-8 w-full items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-39.5"
-            onClick={handleCheckClicked}
-          >
-            Sprawdź Sesje
           </button>
         </div>
       </div>

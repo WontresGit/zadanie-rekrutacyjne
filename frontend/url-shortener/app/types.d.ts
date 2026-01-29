@@ -16,5 +16,4 @@ interface ShortUrlRes {
   clicks: number;
   expireDate?: string;
   alias?: string;
-  deleteDate?: string;
 }

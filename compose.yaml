@@ -55,6 +55,29 @@ services:
       # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
       # - ./docker/db/data:/var/lib/postgresql/data:rw
 ###< doctrine/doctrine-bundle ###
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+  message-consumer:
+    image: php:8.4-cli-alpine
+    build: 
+      context: ./backend/url-shortener
+      dockerfile: ../../Dockerfile
+    container_name: message_consumer
+    volumes:
+      - ./backend/url-shortener:/srv/app
+    depends_on:
+      - database
+      - rabbitmq
+    command: >
+      php bin/console messenger:consume async --time-limit=3600 --memory-limit=128M
+    restart: unless-stopped
+
 
 volumes:
   ###> doctrine/doctrine-bundle ###

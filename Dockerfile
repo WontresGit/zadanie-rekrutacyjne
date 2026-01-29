@@ -3,9 +3,14 @@ FROM php:8.4-cli-alpine
 # install PDO Postgres
 RUN apk add --no-cache \
     postgresql-dev \
+    rabbitmq-c-dev \
     openssl \
     libsodium-dev \
+    autoconf \
+    make \
     && docker-php-ext-install pdo pdo_pgsql sodium
+
+RUN docker-php-ext-enable amqp    
 
 WORKDIR /srv/app
 

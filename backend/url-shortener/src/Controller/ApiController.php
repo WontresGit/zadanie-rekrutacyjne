@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\ShortUrl;
 use App\Entity\User;
+use App\Message\ClickMessage;
 use App\Repository\ShortUrlRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,6 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -105,7 +107,11 @@ final class ApiController extends AbstractController
                 return $this->json(["message" => "you are not authorized to get Short Urls, log in first."], 401);
             }
             if ($user instanceof User) {
-                return $this->json($user->getShortUrls(), 200);
+                $shortLinks = $user->getShortUrls()->filter((function (ShortUrl $shortUrl) {
+                    return $shortUrl->getDeleteDate() === null;
+                }));
+                $logger->info("SIZE:" . $shortLinks->count());
+                return $this->json($shortLinks->getValues(), 200);
             }
 
         } catch (Exception $e) {
@@ -115,15 +121,21 @@ final class ApiController extends AbstractController
     }
     #[Route('/api/urls/{id}/stats', methods: ["GET"])]
     #[IsGranted("PUBLIC_ACCESS")]
-    public function getShortUrlStats(int $id, LoggerInterface $logger)
+    public function getShortUrlStats(ShortUrl $shortUrl, LoggerInterface $logger)
     {
         try {
+            $logger->info(message: "STATS");
             $user = $this->getUser();
             if ($user instanceof User)
-                $shortUrl = $user->getShortUrls()->filter(function (ShortUrl $shortUrl) use ($id) {
-                    return $shortUrl->getId() === $id && $shortUrl->getDeleteDate() > new DateTimeImmutable();
-                });
-            return $this->json(["clicks" => $shortUrl->first()->getClicks()], 200);
+                // $shortUrl = $user->getShortUrls()->filter(function (ShortUrl $shortUrl) use ($id) {
+                //     return $shortUrl->getId() === $id && $shortUrl->getDeleteDate() !== null;
+                // });
+                // return $this->json(["clicks" => $shortUrl->first()->getClicks()], 200);
+                if (!$shortUrl->getDeleteDate()) {
+                    return $this->json(["clicks" => $shortUrl->getClicks()], 200);
+                } else {
+                    return $this->json(["message" => "Short link not found or was deleted."], 404);
+                }
         } catch (Exception $e) {
             $logger->error($e);
             return $this->json(["message" => "There was a problem getting short url stats."], 500);
@@ -134,6 +146,12 @@ final class ApiController extends AbstractController
     public function SoftDeleteShortUrl(ShortUrl $shortUrl, EntityManagerInterface $entityManager, LoggerInterface $logger)
     {
         try {
+            $logger->info("DELETE");
+            $user = $this->getUser();
+            $logger->info($user ? $user->getUserIdentifier() : "BRAK USERA");
+            if (!$user) {
+                return $this->json(["message" => "You're not authorized to perform this action."], 500);
+            }
             if ($shortUrl->getDeleteDate()) {
                 return $this->json(["message" => "Short Url was not found or already deleted."], 404);
             }
@@ -170,7 +188,7 @@ final class ApiController extends AbstractController
     }
     #[Route('/{shortCode}', methods: ["GET"], requirements: ['shortCode' => '[A-Za-z0-9]+'])]
     #[IsGranted("PUBLIC_ACCESS")]
-    public function redirectToShortUrl(string $shortCode, EntityManagerInterface $entityManager, LoggerInterface $logger)
+    public function redirectToShortUrl(string $shortCode, EntityManagerInterface $entityManager, MessageBusInterface $bus, LoggerInterface $logger)
     {
         try {
             $now = new DateTimeImmutable();
@@ -181,8 +199,12 @@ final class ApiController extends AbstractController
                 ->setParameter('code', $shortCode)
                 ->setParameter('now', $now);
             $result = $qb->getQuery()->getOneOrNullResult();
-            if (!$shortCode)
+            if (!$result)
                 return $this->json(array('message' => 'Short Url not found or expired.'), 404);
+            $bus->dispatch(new ClickMessage(
+                $result->getId(),
+                new DateTimeImmutable()
+            ));
             return new RedirectResponse($result->getFullLink());
         } catch (Exception $e) {
             $logger->error($e);

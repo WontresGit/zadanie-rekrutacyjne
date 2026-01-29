@@ -1,5 +1,10 @@
 # Zadanie Rekrutacyjne: URL Shortener
 
+## Uruchomienie
+
+Program uruchomiamy przez Dockera (np Docker Desktop) przez komendę `docker compose up -d --build`.
+Gdy kontener już stoi frontend dostępny jest na `http://localhost:3000` a api na `http://localhost:8000`.
+
 ## Opis zadania
 
 Stwórz system do skracania linków URL ze statystykami kliknięć.

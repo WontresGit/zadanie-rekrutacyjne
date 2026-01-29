@@ -46,6 +46,11 @@ security:
               roles: IS_AUTHENTICATED_FULLY,
           }
         - { path: ^/api/public$, methods: [GET], roles: PUBLIC_ACCESS }
+        - {
+              path: ^/api/urls$,
+              methods: [DELETE],
+              roles: IS_AUTHENTICATED_FULLY,
+          }
         # - { path: ^/$, methods: [GET], roles: PUBLIC_ACCESS }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
