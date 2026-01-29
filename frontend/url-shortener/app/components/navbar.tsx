@@ -14,7 +14,12 @@ export default function Navbar() {
             "Content-Type": "application/json",
           },
         })
-          .then((res) => res.json())
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error("There was a problem creating session.");
+            }
+            return res.json();
+          })
           .then((data) => {
             console.log(data);
             localStorage.setItem("jwt", data.jwtToken);
@@ -28,22 +33,6 @@ export default function Navbar() {
         localStorage.removeItem("jwt");
         authStatus.setIsAuth(false);
       }
-    }
-  }
-  async function handleCheckClicked() {
-    if (typeof window !== "undefined") {
-      fetch("http://localhost:8000/api/session", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("jwt")}`,
-          "Content-Type": "application/json",
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          console.log(data);
-        })
-        .catch((e) => console.log(e));
     }
   }
   return (
