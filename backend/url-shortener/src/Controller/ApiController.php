@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\ShortUrl;
 use App\Entity\User;
 use App\Message\ClickMessage;
-use App\Repository\ShortUrlRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -15,6 +14,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -68,12 +69,19 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/api/urls', methods: ["POST"])]
-    public function createShortUrl(Request $request, SerializerInterface $serializer, EntityManagerInterface $entityManager, UrlShortener $urlShortener, ValidatorInterface $validator, LoggerInterface $logger)
+    public function createShortUrl(Request $request, SerializerInterface $serializer, EntityManagerInterface $entityManager, UrlShortener $urlShortener, ValidatorInterface $validator, RateLimiterFactory $createShortUrlLimiter, LoggerInterface $logger)
     {
         try {
             $user = $this->getUser();
             if (!$user) {
                 return $this->json(["message" => "you are not authorized to create Short Url, log in first."], 401);
+            }
+            $limiter = $createShortUrlLimiter->create(
+                $user->getUserIdentifier()
+            );
+            $limit = $limiter->consume(1);
+            if (!$limit->isAccepted()) {
+                return $this->json(['errors' => "Reacherd rate limit of 10 links per minute."], 429);
             }
             $content = $request->getContent();
             $logger->info($content);

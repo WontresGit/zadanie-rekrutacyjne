@@ -139,7 +139,7 @@ export default function ListPage() {
         ) : (
           <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left w-full">
             <div className="w-full flex justify-center">
-              <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
+              <h1 className="w-full text-3xl text-center font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
                 Nie jesteś zalagowany.
               </h1>
             </div>
