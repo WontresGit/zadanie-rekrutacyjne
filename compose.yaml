@@ -20,7 +20,8 @@ services:
     volumes:
       - ./backend/url-shortener:/srv/app
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     command: >
       sh -c "php -S 0.0.0.0:8000 -t public"
   ###> doctrine/doctrine-bundle ###
@@ -76,8 +77,10 @@ services:
     volumes:
       - ./backend/url-shortener:/srv/app
     depends_on:
-      - database
-      - rabbitmq
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
     command: >
       php bin/console messenger:consume async --time-limit=3600 --memory-limit=128M
     restart: unless-stopped

@@ -2,8 +2,12 @@
 
 ## Uruchomienie
 
-Program uruchomiamy przez Dockera (np Docker Desktop) przez komendę `docker compose up -d --build`.
-Gdy kontener już stoi frontend dostępny jest na `http://localhost:3000` a api na `http://localhost:8000`.
+Program uruchomiamy przez Dockera (np Docker Desktop) przez komendę
+
+````docker compose up -d --build
+```.
+Odpalany jest skryp ``entrypoint.sh`` który wywołuje ``composer isntall`` co może chwilę potrwać.
+Gdy kontener już stoi a paczki są zainstalowane frontend dostępny jest na `http://localhost:3000` a api na `http://localhost:8000`.
 
 ## Opis zadania
 
@@ -24,15 +28,17 @@ Stwórz system do skracania linków URL ze statystykami kliknięć.
 
 ## Endpointy API
 
-```
-POST   /api/session                            - utworzenie sesji
-GET    /api/session                            - pobranie sesji
-POST   /api/urls                               - tworzenie linku
-GET    /api/urls                               - lista własnych linków
-GET    /api/urls/{id}/stats                    - statystyki kliknięć
-DELETE /api/urls/{id}                          - usunięcie linku
-GET    /api/public                             - wszystkie publiczne linki
-GET    /{shortCode}                            - przekierowanie
+````
+
+POST /api/session - utworzenie sesji
+GET /api/session - pobranie sesji
+POST /api/urls - tworzenie linku
+GET /api/urls - lista własnych linków
+GET /api/urls/{id}/stats - statystyki kliknięć
+DELETE /api/urls/{id} - usunięcie linku
+GET /api/public - wszystkie publiczne linki
+GET /{shortCode} - przekierowanie
+
 ```
 
 ## Wymagania techniczne
@@ -54,3 +60,4 @@ LUB
 - Fork repozytorium
 - Działający `docker-compose up`
 - README z instrukcją uruchomienia
+```

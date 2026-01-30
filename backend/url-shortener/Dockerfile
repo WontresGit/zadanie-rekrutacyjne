@@ -3,6 +3,7 @@ FROM php:8.4-cli
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
+    postgresql-client \
     libpq-dev \
     librabbitmq-dev \
     libssl-dev \
@@ -19,3 +20,6 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /srv/app
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
