@@ -193,7 +193,7 @@ final class ApiController extends AbstractController
             return $this->json(array('message' => 'There was a problem getting all public links.'), 500);
         }
     }
-    #[Route('/{shortCode}', methods: ["GET"], requirements: ['shortCode' => '[A-Za-z0-9]+'])]
+    #[Route('/{shortCode}', methods: ["GET"])]
     #[IsGranted("PUBLIC_ACCESS")]
     public function redirectToShortUrl(string $shortCode, EntityManagerInterface $entityManager, MessageBusInterface $bus, LoggerInterface $logger)
     {

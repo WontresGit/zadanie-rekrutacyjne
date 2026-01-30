@@ -8,9 +8,10 @@ RUN apk add --no-cache \
     libsodium-dev \
     autoconf \
     make \
-    && docker-php-ext-install pdo pdo_pgsql sodium
+    && docker-php-ext-install pdo pdo_pgsql sodium 
 
-RUN docker-php-ext-enable amqp    
+RUN pecl install amqp-1.11.0 \
+    && docker-php-ext-enable amqp
 
 WORKDIR /srv/app
 

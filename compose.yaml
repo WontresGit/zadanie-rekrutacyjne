@@ -14,11 +14,7 @@ services:
     image: php:8.4-cli-alpine
     build: 
       context: ./backend/url-shortener
-      dockerfile: ../../Dockerfile
     container_name: symfony_php
-    environment:
-      JWT_SECRET_KEY: /srv/app/config/jwt/private.pem
-      JWT_PUBLIC_KEY: /srv/app/config/jwt/public.pem
     ports:
       - "8000:8000" # Symfony server
     volumes:
@@ -76,7 +72,6 @@ services:
     image: php:8.4-cli-alpine
     build: 
       context: ./backend/url-shortener
-      dockerfile: ../../Dockerfile
     container_name: message_consumer
     volumes:
       - ./backend/url-shortener:/srv/app
