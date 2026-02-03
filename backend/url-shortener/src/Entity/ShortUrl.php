@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ShortUrlRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ShortUrlRepository::class)]
 #[ORM\UniqueConstraint(
@@ -31,6 +32,10 @@ class ShortUrl
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Url(
+        message: 'Podaj poprawny adres URL.'
+    )]
     private ?string $fullLink = null;
 
     #[ORM\Column(length: 127, nullable: true)]
@@ -48,7 +53,7 @@ class ShortUrl
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $alias = null;
 
-    #[ORM\ManyToOne(inversedBy: 'deleteDate')]
+    #[ORM\ManyToOne(inversedBy: 'uuid')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $creator = null;
 

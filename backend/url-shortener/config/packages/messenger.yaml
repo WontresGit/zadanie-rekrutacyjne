@@ -14,7 +14,7 @@ framework:
                         clicks:
                             binding_keys: [click]
                         # failed: 'doctrine://default?queue_name=failed'
-                        sync: "sync://"
+                        # sync: "sync://"
 
         routing:
             # Route your messages to the transports

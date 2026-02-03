@@ -133,21 +133,15 @@ final class ApiController extends AbstractController
         try {
             $logger->info(message: "STATS");
             $user = $this->getUser();
-            if ($user instanceof User)
-                // $shortUrl = $user->getShortUrls()->filter(function (ShortUrl $shortUrl) use ($id) {
-                //     return $shortUrl->getId() === $id && $shortUrl->getDeleteDate() !== null;
-                // });
-                // return $this->json(["clicks" => $shortUrl->first()->getClicks()], 200);
-                if (!$shortUrl->getDeleteDate()) {
-                    return $this->json(["clicks" => $shortUrl->getClicks()], 200);
-                } else {
-                    return $this->json(["message" => "Short link not found or was deleted."], 404);
-                }
+            if (!$shortUrl->getDeleteDate()) {
+                return $this->json(["clicks" => $shortUrl->getClicks()], 200);
+            } else {
+                return $this->json(["message" => "Short link not found or was deleted."], 404);
+            }
         } catch (Exception $e) {
             $logger->error($e);
             return $this->json(["message" => "There was a problem getting short url stats."], 500);
         }
-
     }
     #[Route('/api/urls/{id}', methods: ["DELETE"])]
     public function SoftDeleteShortUrl(ShortUrl $shortUrl, EntityManagerInterface $entityManager, LoggerInterface $logger)
@@ -161,6 +155,9 @@ final class ApiController extends AbstractController
             }
             if ($shortUrl->getDeleteDate()) {
                 return $this->json(["message" => "Short Url was not found or already deleted."], 404);
+            }
+            if ($shortUrl->getCreator() !== $user) {
+                return $this->json(["message" => "You're not authorized to perform this action."], 500);
             }
             $shortUrl->setDeleteDate(new DateTimeImmutable());
             $entityManager->flush();
